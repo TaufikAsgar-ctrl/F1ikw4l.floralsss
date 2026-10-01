@@ -270,12 +270,59 @@ const PROMO_CODES = {
   "CRAFTING": { discountPercent: 15, name: "Diskon Promo 15%" }
 };
 
+// Pilihan Warna Wrapping dengan Swatch Visual
+const WRAPPING_SWATCHES = [
+  { name: "Korean Soft Pink & White", color1: "#fbcfe8", color2: "#ffffff", title: "Soft Pink & White" },
+  { name: "Cream Ivory & Gold Border", color1: "#fef3c7", color2: "#d97706", title: "Cream & Gold" },
+  { name: "Classic Elegant Black", color1: "#1f2937", color2: "#d97706", title: "Black & Gold" },
+  { name: "Lilac Lavender Purple", color1: "#e9d5ff", color2: "#c084fc", title: "Lilac Lavender" },
+  { name: "Sage Green Natural", color1: "#d1fae5", color2: "#34d399", title: "Sage Green" },
+  { name: "Sky Blue & White", color1: "#bae6fd", color2: "#ffffff", title: "Sky Blue & White" },
+  { name: "Vintage Mocca Craft", color1: "#d7b899", color2: "#8b5e34", title: "Vintage Mocca" }
+];
+
+// Rekomendasi Cepat Berdasarkan Momen Acara (Occasion Presets)
+const OCCASION_PRESETS = {
+  wisuda: {
+    name: "Wisuda (Graduation)",
+    sizeId: "small", // 5 tangkai
+    stems: { matahari: 2, daisy: 2, akasia: 1 },
+    wrapping: "Korean Soft Pink & White",
+    note: "Happy Graduation! Selamat atas kelulusannya, bangga banget sama perjuanganmu! Semoga sukses selalu! 🎓✨"
+  },
+  romantis: {
+    name: "Romantis (Anniversary / Love)",
+    sizeId: "small", // 5 tangkai
+    stems: { mawar: 3, lily: 1, eucalyptus: 1 },
+    wrapping: "Cream Ivory & Gold Border",
+    note: "Happy Anniversary tersayang! Bunga kawat bulu ini awet selamanya, seperti rasa sayangku ke kamu. 💐❤️"
+  },
+  sidang: {
+    name: "Sidang / Sempro",
+    sizeId: "petite", // 3 tangkai
+    stems: { tulip: 2, daisy: 1 },
+    wrapping: "Lilac Lavender Purple",
+    note: "Congratulations atas sidangnya! Selangkah lagi menuju sarjana, semangat terus ya! 👏🎉"
+  },
+  minimalis: {
+    name: "Single Flower Mini",
+    sizeId: "mini", // 1 tangkai
+    stems: { tulip: 1 },
+    wrapping: "Sage Green Natural",
+    note: "Semangat terus ya! Semoga harimu selalu ceria & bahagia! 🌸✨"
+  }
+};
+
 // ========================================================
 // 5. APPLICATION STATE
 // ========================================================
 const state = {
   cart: [],
   appliedPromo: null,
+  flowerFilter: {
+    category: "all",
+    search: ""
+  },
   builder: {
     selectedSizeId: "small",
     selectedStems: {}, // { flowerId: qty }
@@ -340,13 +387,60 @@ function loadCartFromStorage() {
 }
 
 // ========================================================
-// 7. RENDER PRICE LIST BUNGA KAWAT BULU (FOTO INDIVIDUAL)
+// 7. RENDER PRICE LIST BUNGA KAWAT BULU (DENGAN SEARCH & FILTER)
 // ========================================================
 function renderPriceListSection() {
   const container = document.getElementById("flowers-grid");
   if (!container) return;
 
-  container.innerHTML = OFFICIAL_FLOWERS.map(flower => `
+  const searchTerm = (state.flowerFilter.search || "").trim().toLowerCase();
+  const category = state.flowerFilter.category || "all";
+
+  const filtered = OFFICIAL_FLOWERS.filter(flower => {
+    // Search matching
+    const matchesSearch = !searchTerm || 
+      flower.name.toLowerCase().includes(searchTerm) || 
+      flower.desc.toLowerCase().includes(searchTerm) ||
+      flower.type.toLowerCase().includes(searchTerm) ||
+      flower.priceTag.toLowerCase().includes(searchTerm);
+
+    if (!matchesSearch) return false;
+
+    // Category matching
+    if (category === "all") return true;
+    if (category === "hemat") return flower.price <= 10000;
+    if (category === "Bunga Utama") return flower.type === "Bunga Utama";
+    if (category === "Dedaunan Aksen") return flower.type === "Dedaunan Aksen" || flower.type === "Bunga & Aksen";
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty-filter-state">
+        <span class="icon">🔍</span>
+        <h3>Bunga tidak ditemukan</h3>
+        <p>Tidak ada bunga yang cocok dengan kata kunci "<strong>${searchTerm}</strong>".</p>
+        <button type="button" class="btn btn-sm btn-outline mt-12" id="btn-reset-flower-filter">
+          🌸 Tampilkan Semua Bunga
+        </button>
+      </div>
+    `;
+    document.getElementById("btn-reset-flower-filter")?.addEventListener("click", () => {
+      const searchInput = document.getElementById("flower-search-input");
+      const clearBtn = document.getElementById("btn-clear-search");
+      if (searchInput) searchInput.value = "";
+      if (clearBtn) clearBtn.hidden = true;
+      state.flowerFilter.search = "";
+      state.flowerFilter.category = "all";
+      document.querySelectorAll(".flower-filter-tabs .filter-tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-filter") === "all");
+      });
+      renderPriceListSection();
+    });
+    return;
+  }
+
+  container.innerHTML = filtered.map(flower => `
     <article class="flower-card-arch" data-id="${flower.id}">
       <div class="flower-card-media">
         <img 
@@ -373,6 +467,22 @@ function renderPriceListSection() {
       </div>
     </article>
   `).join("");
+}
+
+// Render Visual Color Swatches for Wrapping
+function renderWrappingSwatches() {
+  const container = document.getElementById("wrapping-swatches-grid");
+  if (!container) return;
+
+  container.innerHTML = WRAPPING_SWATCHES.map(swatch => {
+    const isActive = swatch.name === state.builder.wrappingColor ? "active" : "";
+    return `
+      <div class="swatch-card ${isActive}" data-wrapping="${swatch.name}" title="${swatch.name}">
+        <span class="swatch-circle" style="background: linear-gradient(135deg, ${swatch.color1} 50%, ${swatch.color2} 50%);"></span>
+        <span class="swatch-name">${swatch.title}</span>
+      </div>
+    `;
+  }).join("");
 }
 
 // ========================================================
@@ -454,6 +564,7 @@ function renderBuilderControls() {
     }).join("");
   }
 
+  renderWrappingSwatches();
   updateBuilderCalculations();
 }
 
@@ -571,6 +682,18 @@ function updateBuilderCalculations() {
   }
 
   if (invGrandTotal) invGrandTotal.textContent = formatRupiah(grandTotal);
+
+  // Sync Sticky Mobile Bar
+  const stickyStems = document.getElementById("sticky-stem-counter");
+  const stickyPrice = document.getElementById("sticky-total-price");
+  if (stickyStems) {
+    stickyStems.textContent = isCustom 
+      ? `${totalStems} Tangkai (Custom)` 
+      : `${totalStems} / ${targetStems} Tangkai (${currentSizeObj.name})`;
+  }
+  if (stickyPrice) {
+    stickyPrice.textContent = formatRupiah(grandTotal);
+  }
 
   return {
     sizeObj: currentSizeObj,
@@ -746,6 +869,23 @@ function updateCartTotals() {
   if (summaryGrandTotal) summaryGrandTotal.textContent = formatRupiah(grandTotal);
 
   return { totalQty, subtotal, shippingCost, discountAmount, grandTotal };
+}
+
+// Fallback Copy to Clipboard for older browsers
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand("copy");
+    showToast("✓ Rincian buket berhasil disalin!", "success");
+  } catch (err) {
+    showToast("Gagal menyalin otomatis, silakan screenshot rincian buket.");
+  }
+  document.body.removeChild(ta);
 }
 
 // ========================================================
@@ -936,7 +1076,27 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Custom Builder: Wrapping & Addons ---
   document.getElementById("builder-wrapping")?.addEventListener("change", (e) => {
     state.builder.wrappingColor = e.target.value;
+    document.querySelectorAll(".swatch-card").forEach(s => {
+      s.classList.toggle("active", s.getAttribute("data-wrapping") === e.target.value);
+    });
     updateBuilderCalculations();
+  });
+
+  // Visual Wrapping Swatches Click
+  document.getElementById("wrapping-swatches-grid")?.addEventListener("click", (e) => {
+    const swatch = e.target.closest(".swatch-card");
+    if (!swatch) return;
+    const color = swatch.getAttribute("data-wrapping");
+    if (color) {
+      state.builder.wrappingColor = color;
+      const select = document.getElementById("builder-wrapping");
+      if (select) select.value = color;
+      document.querySelectorAll(".swatch-card").forEach(s => {
+        s.classList.toggle("active", s.getAttribute("data-wrapping") === color);
+      });
+      updateBuilderCalculations();
+      showToast(`Warna wrapping: ${color}`);
+    }
   });
 
   const addonCheckboxes = [
@@ -1028,6 +1188,162 @@ Mohon info ketersediaan slot pengerjaan di Bandung ya kak. Terima kasih! 🌸✨
 
     const encoded = encodeURIComponent(msg);
     window.open(`https://wa.me/${STORE_INFO.whatsappNumber}?text=${encoded}`, "_blank");
+  });
+
+  // --- Copy Builder Summary to Clipboard ---
+  document.getElementById("btn-copy-builder-summary")?.addEventListener("click", () => {
+    const calc = updateBuilderCalculations();
+    if (calc.totalStems === 0) {
+      showToast("Pilih minimal 1 tangkai bunga kawat bulu terlebih dahulu!");
+      return;
+    }
+
+    const noteInput = document.getElementById("builder-card-note");
+    const note = noteInput ? noteInput.value.trim() : "";
+    const stemsText = calc.stemsBreakdown.map(s => `• ${s.qty}x ${s.name} = ${formatRupiah(s.subtotal)}`).join("\n");
+    const addonsText = state.builder.addons.length > 0 ? state.builder.addons.map(a => a.name).join(", ") : "-";
+
+    const textToCopy = 
+`🌸 RINCIAN BUKET KAWAT BULU - F1KW4L.FLORALS 🌸
+"Crafting flowers, capturing emotions"
+
+• Ukuran Buket: ${calc.sizeObj.name} (${calc.totalStems} Tangkai)
+• Kertas Wrapping: ${state.builder.wrappingColor}
+• Bunga Pilihan:
+${stemsText}
+• Add-on: ${addonsText}
+• Kartu Ucapan: "${note || "(Tanpa ucapan)"}"
+--------------------------------------------------
+• Total Bunga: ${formatRupiah(calc.flowersSubtotal)}
+• Jasa Rangkai & Wrapping: ${formatRupiah(calc.wrappingFee)}
+${calc.addonsFee > 0 ? `• Add-on: ${formatRupiah(calc.addonsFee)}\n` : ""}
+👉 TOTAL HARGA: ${formatRupiah(calc.grandTotal)}
+--------------------------------------------------
+WhatsApp: +62 813-8771-785 (Bandung)`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        showToast("✓ Rincian buket berhasil disalin ke clipboard! Siap dipaste ke chat WA.", "success");
+      }).catch(() => {
+        fallbackCopy(textToCopy);
+      });
+    } else {
+      fallbackCopy(textToCopy);
+    }
+  });
+
+  // --- Occasion Presets Recommender ---
+  document.querySelector(".occasion-chips-list")?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".occasion-chip-btn");
+    if (!btn) return;
+    const occasionKey = btn.getAttribute("data-occasion");
+    const preset = OCCASION_PRESETS[occasionKey];
+    if (!preset) return;
+
+    // 1. Reset all stems
+    OFFICIAL_FLOWERS.forEach(flower => {
+      state.builder.selectedStems[flower.id] = 0;
+    });
+
+    // 2. Set stems from preset
+    Object.keys(preset.stems).forEach(fId => {
+      state.builder.selectedStems[fId] = preset.stems[fId];
+    });
+
+    // 3. Set size
+    state.builder.selectedSizeId = preset.sizeId;
+    const radio = document.querySelector(`input[name="builder-size-radio"][value="${preset.sizeId}"]`);
+    if (radio) radio.checked = true;
+
+    // 4. Set wrapping
+    state.builder.wrappingColor = preset.wrapping;
+    const wrappingSelect = document.getElementById("builder-wrapping");
+    if (wrappingSelect) wrappingSelect.value = preset.wrapping;
+    document.querySelectorAll(".swatch-card").forEach(s => {
+      s.classList.toggle("active", s.getAttribute("data-wrapping") === preset.wrapping);
+    });
+
+    // 5. Set greeting note
+    const cardNoteEl = document.getElementById("builder-card-note");
+    const charCountEl = document.getElementById("card-char-count");
+    if (cardNoteEl && preset.note) {
+      cardNoteEl.value = preset.note;
+      if (charCountEl) charCountEl.textContent = `${preset.note.length} / 150`;
+    }
+
+    // 6. Update stem picker counter numbers in UI
+    OFFICIAL_FLOWERS.forEach(flower => {
+      const countEl = document.getElementById(`builder-qty-${flower.id}`);
+      if (countEl) countEl.textContent = state.builder.selectedStems[flower.id] || 0;
+    });
+
+    // 7. Update active chip
+    document.querySelectorAll(".occasion-chip-btn").forEach(b => {
+      b.classList.toggle("active", b.getAttribute("data-occasion") === occasionKey);
+    });
+
+    // 8. Re-calculate
+    updateBuilderCalculations();
+    showToast(`Racikan momen "${preset.name}" diterapkan!`, "success");
+  });
+
+  // --- Greeting Card Quick Templates & Char Counter ---
+  document.querySelector(".greeting-templates-wrap")?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".btn-card-template");
+    if (!btn) return;
+    const text = btn.getAttribute("data-text");
+    const noteEl = document.getElementById("builder-card-note");
+    const countEl = document.getElementById("card-char-count");
+    if (noteEl && text) {
+      noteEl.value = text;
+      if (countEl) countEl.textContent = `${text.length} / 150`;
+      showToast("Template ucapan dimasukkan!");
+      noteEl.focus();
+    }
+  });
+
+  const cardNoteInput = document.getElementById("builder-card-note");
+  if (cardNoteInput) {
+    cardNoteInput.addEventListener("input", (e) => {
+      const len = e.target.value.length;
+      const countEl = document.getElementById("card-char-count");
+      if (countEl) countEl.textContent = `${len} / 150`;
+    });
+  }
+
+  // --- Search & Category Filter Listeners ---
+  const searchInput = document.getElementById("flower-search-input");
+  const clearSearchBtn = document.getElementById("btn-clear-search");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      state.flowerFilter.search = e.target.value;
+      if (clearSearchBtn) {
+        clearSearchBtn.hidden = !e.target.value;
+      }
+      renderPriceListSection();
+    });
+  }
+
+  if (clearSearchBtn) {
+    clearSearchBtn.addEventListener("click", () => {
+      if (searchInput) {
+        searchInput.value = "";
+        searchInput.focus();
+      }
+      clearSearchBtn.hidden = true;
+      state.flowerFilter.search = "";
+      renderPriceListSection();
+    });
+  }
+
+  document.querySelector(".flower-filter-tabs")?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".filter-tab-btn");
+    if (!btn) return;
+    document.querySelectorAll(".flower-filter-tabs .filter-tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    state.flowerFilter.category = btn.getAttribute("data-filter");
+    renderPriceListSection();
   });
 
   // --- Preset Bouquets Add to Cart ---

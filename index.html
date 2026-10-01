@@ -180,6 +180,28 @@
           </div>
         </div>
 
+        <!-- Search & Category Filter Controls -->
+        <div class="catalog-filter-bar">
+          <div class="catalog-search-box">
+            <span class="search-icon">🔍</span>
+            <input 
+              type="text" 
+              id="flower-search-input" 
+              class="search-input" 
+              placeholder="Cari nama bunga (misal: mawar, tulip, matahari)..." 
+              aria-label="Cari jenis bunga kawat bulu"
+            />
+            <button type="button" id="btn-clear-search" class="btn-clear-search" aria-label="Hapus pencarian" hidden>&times;</button>
+          </div>
+
+          <div class="flower-filter-tabs" role="tablist" aria-label="Filter Kategori Bunga">
+            <button type="button" class="filter-tab-btn active" data-filter="all">🌸 Semua (11 Bunga)</button>
+            <button type="button" class="filter-tab-btn" data-filter="Bunga Utama">💐 Bunga Utama</button>
+            <button type="button" class="filter-tab-btn" data-filter="Dedaunan Aksen">🌿 Dedaunan & Aksen</button>
+            <button type="button" class="filter-tab-btn" data-filter="hemat">🏷️ Hemat (&le; 10k)</button>
+          </div>
+        </div>
+
         <!-- Interactive 11 Flowers Grid -->
         <div class="flowers-catalog-grid" id="flowers-grid">
           <!-- Will be rendered dynamically via JavaScript from official price list -->
@@ -233,6 +255,31 @@
             <!-- Step 1 & 2: Configuration & Flower Stem Picker -->
             <div class="builder-steps-col">
               
+              <!-- Quick Occasion Recommender -->
+              <div class="occasion-quick-bar">
+                <div class="occasion-bar-header">
+                  <span class="icon">✨</span>
+                  <div>
+                    <strong>Mau Langsung Rangkai Cepat Sesuai Acara?</strong>
+                    <p>Klik salah satu momen di bawah ini untuk racikan bunga otomatis:</p>
+                  </div>
+                </div>
+                <div class="occasion-chips-list">
+                  <button type="button" class="occasion-chip-btn" data-occasion="wisuda">
+                    🎓 Wisuda (Matahari & Daisy)
+                  </button>
+                  <button type="button" class="occasion-chip-btn" data-occasion="romantis">
+                    💖 Romantis (Mawar & Lily)
+                  </button>
+                  <button type="button" class="occasion-chip-btn" data-occasion="sidang">
+                    🎉 Sidang / Sempro (Tulip Sweet)
+                  </button>
+                  <button type="button" class="occasion-chip-btn" data-occasion="minimalis">
+                    🌸 Single Flower Mini (Hemat)
+                  </button>
+                </div>
+              </div>
+
               <!-- Step A: Pilih Ukuran Buket -->
               <div class="builder-step-card">
                 <div class="step-badge-num">1</div>
@@ -267,7 +314,13 @@
                 <h3 class="step-heading">Kustomisasi Wrapping & Kartu Ucapan:</h3>
                 
                 <div class="form-group mb-16">
-                  <label for="builder-wrapping" class="field-label">Pilihan Warna Kertas Pembungkus (Wrapping):</label>
+                  <label class="field-label">Pilihan Warna Kertas Pembungkus (Wrapping):</label>
+                  
+                  <!-- Visual Color Swatches -->
+                  <div class="wrapping-swatches-grid" id="wrapping-swatches-grid">
+                    <!-- Rendered dynamically via JS with active ring -->
+                  </div>
+
                   <select id="builder-wrapping" class="select-field">
                     <option value="Korean Soft Pink & White">🌸 Korean Soft Pink & White (Favorit)</option>
                     <option value="Cream Ivory & Gold Border">🤍 Cream Ivory & Gold Border (Mewah)</option>
@@ -302,14 +355,31 @@
                 </div>
 
                 <div class="form-group">
-                  <label for="builder-card-note" class="field-label">
-                    Pesan Kartu Ucapan <em>(Gratis)</em>:
-                  </label>
+                  <div class="field-label-split">
+                    <label for="builder-card-note" class="field-label">
+                      Pesan Kartu Ucapan <em>(Gratis)</em>:
+                    </label>
+                    <span class="char-count" id="card-char-count">0 / 150</span>
+                  </div>
+
+                  <!-- Greeting Card Template Presets -->
+                  <div class="greeting-templates-wrap">
+                    <span class="templates-label">⚡ Template Cepat:</span>
+                    <div class="templates-chips">
+                      <button type="button" class="btn-card-template" data-text="Happy Graduation! Selamat atas kelulusannya, bangga banget sama perjuanganmu! Semoga ilmunya berkah dan sukses selalu! 🎓✨">🎓 Wisuda</button>
+                      <button type="button" class="btn-card-template" data-text="Happy Birthday! Semoga panjang umur, selalu dilimpahkan kesehatan, kebahagiaan, dan tercapai semua impianmu! 🎂💖">🎂 Ultah</button>
+                      <button type="button" class="btn-card-template" data-text="Happy Anniversary tersayang! Bunga kawat bulu ini awet selamanya, seperti rasa sayangku ke kamu. Love you! 💐❤️">💖 Anniversary</button>
+                      <button type="button" class="btn-card-template" data-text="Congratulations atas sidangnya! Selangkah lagi menuju sarjana, semangat terus ya! 👏🎉">🎉 Sidang</button>
+                      <button type="button" class="btn-card-template" data-text="Thank you for being such an amazing person! Semangat terus dan semoga harimu selalu ceria! 🌸✨">💌 Terima Kasih</button>
+                    </div>
+                  </div>
+
                   <textarea 
                     id="builder-card-note" 
-                    rows="2" 
+                    rows="3" 
+                    maxlength="150"
                     class="textarea-field" 
-                    placeholder="Contoh: Happy Graduation & Sukses selalu ya! From: Sarah"
+                    placeholder="Ketik ucapan di sini atau klik salah satu template cepat di atas..."
                   ></textarea>
                 </div>
               </div>
@@ -375,8 +445,11 @@
                   <button type="button" class="btn btn-primary btn-block mb-10" id="btn-add-builder-to-cart">
                     <span>🛒 Masukkan ke Keranjang Belanja</span>
                   </button>
-                  <button type="button" class="btn btn-wa btn-block" id="btn-direct-wa-builder">
+                  <button type="button" class="btn btn-wa btn-block mb-10" id="btn-direct-wa-builder">
                     <span>📲 Langsung Pesan via WhatsApp</span>
+                  </button>
+                  <button type="button" class="btn btn-outline btn-block" id="btn-copy-builder-summary">
+                    <span>📋 Salin Rincian Buket</span>
                   </button>
                 </div>
 
@@ -451,6 +524,96 @@
             <p class="step-box-desc">
               Sistem akan memformat seluruh rincian bunga, warna wrapping, ucapan, dan total harga ke WhatsApp resmi <strong>+62 813-8771-785</strong> untuk pembayaran.
             </p>
+          </div>
+        </div>
+
+        <!-- Shipping & Safety Guarantee Card -->
+        <div class="guarantee-section-card">
+          <div class="guarantee-header text-center">
+            <span class="guarantee-badge">🛡️ Kualitas & Keamanan</span>
+            <h3 class="guarantee-title">Jaminan Buket Tiba Utuh, Rapi, & Cantik</h3>
+            <p class="guarantee-desc">Setiap buket bunga kawat bulu f1kw4l.florals dipacking dengan standar perlindungan khusus</p>
+          </div>
+          <div class="guarantee-grid">
+            <div class="guarantee-item">
+              <span class="guarantee-icon">📦</span>
+              <h4>Kardus Tebal Khusus Buket</h4>
+              <p>Menggunakan kardus corrugated kokoh yang pas dengan ukuran buket, tidak gepeng saat ditumpuk kurir.</p>
+            </div>
+            <div class="guarantee-item">
+              <span class="guarantee-icon">🛡️</span>
+              <h4>Penyangga Anti-Goyang</h4>
+              <p>Gagang buket dikunci erat di dasar kardus sehingga bunga tidak bergeser atau saling tertekan.</p>
+            </div>
+            <div class="guarantee-item">
+              <span class="guarantee-icon">🫧</span>
+              <h4>Lapisan Bubble Wrap & Fragile</h4>
+              <p>Kardus dilapisi bubble wrap tebal tahan benturan serta stiker peringatan barang rapuh.</p>
+            </div>
+            <div class="guarantee-item">
+              <span class="guarantee-icon">✨</span>
+              <h4>Awet & Fleksibel</h4>
+              <p>Bahan kawat bulu fleksibel, jika sedikit bergeser saat unboxing kelopak bunga bisa dirapikan kembali seperti baru!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Testimonials Section -->
+        <div class="testimonials-wrap">
+          <div class="section-header text-center mb-24">
+            <span class="header-badge">⭐ Cerita & Ulasan Pembeli</span>
+            <h3 class="faq-section-heading">Apa Kata Mereka Tentang f1kw4l.florals?</h3>
+            <p class="section-desc">Testimoni nyata dari pembeli buket kawat bulu di Bandung & luar kota</p>
+          </div>
+
+          <div class="testimonials-grid">
+            <div class="testi-card">
+              <div class="testi-stars">⭐⭐⭐⭐⭐</div>
+              <p class="testi-quote">“Buket wisuda bunga matahari kawat bulunya gemes banget! Awet bisa dipajang di kamar, beda sama bunga asli yang seminggu layu terus dibuang. Temen-temen kampus pada nanyain pesen di mana!”</p>
+              <div class="testi-user">
+                <span class="user-avatar">🎓</span>
+                <div>
+                  <strong>Nadya P.</strong>
+                  <small>Wisuda ITB Bandung</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="testi-card">
+              <div class="testi-stars">⭐⭐⭐⭐⭐</div>
+              <p class="testi-quote">“Pesen mendadak H-1 buat sempro pacar, pengerjaan cepet dan rapi banget! Bunga tulip sama daisynya padat, warnanya pastel estetik. Adminnya ramah banget ngebantu pilih warna wrapping.”</p>
+              <div class="testi-user">
+                <span class="user-avatar">💐</span>
+                <div>
+                  <strong>Dimas A.</strong>
+                  <small>Dago, Bandung</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="testi-card">
+              <div class="testi-stars">⭐⭐⭐⭐⭐</div>
+              <p class="testi-quote">“Kirim ke Jakarta Selatan aman banget kardusnya tebal dan buket gak penyok sama sekali. Pacar suka banget pas unboxing. Harganya worth it banget untuk hasil serapi ini!”</p>
+              <div class="testi-user">
+                <span class="user-avatar">📦</span>
+                <div>
+                  <strong>Kevin R.</strong>
+                  <small>Kirim ke Jakarta Selatan</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="testi-card">
+              <div class="testi-stars">⭐⭐⭐⭐⭐</div>
+              <p class="testi-quote">“Suka banget sama fitur rangkai buket di web ini! Harganya transparan per tangkai, jadi bisa atur sendiri pas sesuai budget mahasiswa. Kartu ucapannya juga dicetak rapi.”</p>
+              <div class="testi-user">
+                <span class="user-avatar">🌸</span>
+                <div>
+                  <strong>Bella S.</strong>
+                  <small>Cimahi, Bandung Barat</small>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -757,6 +920,21 @@
       </div>
     </div>
   </dialog>
+
+  <!-- STICKY MOBILE BUILDER BAR -->
+  <aside class="mobile-sticky-bar" id="mobile-sticky-bar" aria-label="Ringkasan Buket Cepat">
+    <div class="sticky-bar-inner">
+      <div class="sticky-bar-info">
+        <span class="sticky-stems-count" id="sticky-stem-counter">0 Tangkai Terpilih</span>
+        <strong class="sticky-total-price" id="sticky-total-price">Rp 0</strong>
+      </div>
+      <div class="sticky-bar-actions">
+        <a href="#custom-builder" class="btn btn-sm btn-primary" id="btn-sticky-builder-cta">
+          <span>🎨 Rangkai / Nota</span>
+        </a>
+      </div>
+    </div>
+  </aside>
 
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toast-container" class="toast-container" aria-live="polite"></div>
